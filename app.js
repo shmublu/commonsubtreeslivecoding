@@ -15,7 +15,7 @@ var logsPath = dataPath + '/logs'
 var csvFields = ['Timestamp', 'Active_Window', 'Eval_or_PBE', 'Change_Tag', /*'Changed_Content',*/ 'Success_Tag']
 var newLine = '\r\n'
 
-const port = 80
+const port = 8000
 app.listen(port);
 //console.log('now listening to port ' + port)
 
