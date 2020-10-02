@@ -38,7 +38,7 @@ now clone the repo and be sure to update npm packages
  npm update
 ```
 # notes
-does not work natively on windows(doalarm code \node_modules\live-backend-nfn5\javascript\eval_pbe_helpers line 49). Install WSL(https://docs.microsoft.com/en-us/windows/wsl/install-win10) and then follow the directions above.
+doesn't work natively on windows(doalarm code \node_modules\live-backend-nfn5\javascript\eval_pbe_helpers line 49). Install WSL(https://docs.microsoft.com/en-us/windows/wsl/install-win10) and then follow the directions above.
 
 # TODOs
 
