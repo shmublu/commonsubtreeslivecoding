@@ -16,6 +16,7 @@
     "googleapis": "^39.2.0",
     "json2csv": "^4.5.2",
     "live-backend-nfn5": "^1.0.11",
+    "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^0.5.1",
     "nodemon": "^2.0.5"
   }
