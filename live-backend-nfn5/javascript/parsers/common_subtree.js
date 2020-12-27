@@ -7,7 +7,7 @@ var treeDupes = function treeDuplicate(tree) {
         var n = turnArrayToTree(tree);
         var nList = getAllLevelPerms(n);
 
-      console.log(findPlaceholderLocation(nList[2]));
+      //console.log(nList);
     }
 
     return tree;
@@ -113,7 +113,6 @@ function findPlaceholderLocation(nodedTree) {
     if(nodedTree.listOfChildren==null || nodedTree==null || nodedTree.data==null) {
         return null;
     }
-    console.log(nodedTree)
     for(i = 0; i < nodedTree.listOfChildren.length; i++) {
         var c = findPlaceholderLocation(nodedTree.listOfChildren[i]);
         if(c==null) {
