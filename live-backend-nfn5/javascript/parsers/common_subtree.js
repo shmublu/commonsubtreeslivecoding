@@ -1,4 +1,4 @@
-const cloneDeep = require('lodash.clonedeep')
+const { truncate } = require('fs');
 const v8 = require('v8');
 const structuredClone = obj => {  return v8.deserialize(v8.serialize(obj));};
 var treeDupes = function treeDuplicate(tree) {
@@ -6,11 +6,106 @@ var treeDupes = function treeDuplicate(tree) {
     else {
         var n = turnArrayToTree(tree);
         var nList = getAllLevelPerms(n);
+        //console.log(nList);
+        preOrder(n);
+        var a = getLongestPermPattern(n, nList);
+        console.log(a[2]);
+        
 
-      //console.log(nList);
+      //console.log(findPlaceholderLocation(nList[2]));
     }
 
     return tree;
+}
+//This method takes in a nodedTree and an array of placeholder trees- it will find the longest pattern in the nodedTree
+function getLongestPermPattern(nodedTree,placeholderTreeList) {
+    var longestPatternRepitition= 0;
+    var longestPattern = null;
+    for(var i = 0; i<placeholderTreeList.length; i++) {
+        var testedPatternRepeatAmount =compareTreePerm(nodedTree, placeholderTreeList[i]);
+        if(testedPatternRepeatAmount>longestPatternRepitition) {
+            longestPatternRepitition=testedPatternRepeatAmount;
+            longestPattern=placeholderTreeList[i];
+        }
+    } 
+    if(longestPattern!=null && longestPatternRepitition > 1) {
+        var placeholderNav = findPlaceholderLocation(longestPattern);
+        //Find whatever occurs after the pattern ends
+        var terminalNodeOfPattern= nodedTree;
+        for(var i = 0; i < longestPatternRepitition; i++) {
+            for(var j = 0; j < placeholderNav.length; j++) {
+                if(terminalNodeOfPattern.listOfChildren!=null && terminalNodeOfPattern.listOfChildren.length > placeholderNav[j]){
+                    terminalNodeOfPattern= terminalNodeOfPattern.listOfChildren[placeholderNav[j]];
+                }
+                else {
+                    console.error("Placeholder navigation/finder experienced an error.")
+                    return null;
+                }
+        }
+        return [longestPattern, longestPatternRepitition, terminalNodeOfPattern, placeholderNav];
+    }
+    }
+    
+}
+//Takes in one nodedTree and one placeholderTree- sees how many times that specific pattern repeats
+function compareTreePerm(nodedTree, placeholderTree) {
+    var childRunThruOrder = findPlaceholderLocation(placeholderTree);
+    var baseNodePointer = nodedTree;
+    var repeatAmount = 1;
+    //navigate to the placeholder node in the main tree
+    for(var i = 0; i < childRunThruOrder.length; i++) {
+        baseNodePointer= baseNodePointer.listOfChildren[childRunThruOrder[i]];
+    }
+    while(treeComparer(baseNodePointer, placeholderTree)) {
+        repeatAmount++;
+        var makeItThru = true;
+        for(var i = 0; i < childRunThruOrder.length; i++) {
+            if(baseNodePointer.listOfChildren!=null && baseNodePointer.listOfChildren.length > childRunThruOrder[i]){
+            baseNodePointer= baseNodePointer.listOfChildren[childRunThruOrder[i]];
+            }
+            else {
+                makeItThru=false
+                break;
+            }
+        }
+        if(makeItThru==false) {
+            break;
+        }
+    }
+    return repeatAmount;
+}
+//Compares two nodedTrees for equality. Placeholders are definitionally equal to any other node.
+function treeComparer(tree, placeholderTree) {
+    if(tree==null && placeholderTree==null) {
+        return true;
+    }
+    else if(tree==null || placeholderTree==null) {
+        return false;
+    }
+    else if(placeholderTree.isPlaceholder) {
+        return true;
+    }
+    else if(!areNodesEqual(tree,placeholderTree)) {
+        return false;
+    }
+    else {
+        if(tree.listOfChildren==null && placeholderTree.listOfChildren==null) {
+            return true;
+        }
+        else if(tree.listOfChildren==null || placeholderTree.listOfChildren==null) {
+            return false;
+        }
+        else if(tree.listOfChildren.length==placeholderTree.listOfChildren.length) {
+        for(var i = 0; i < tree.listOfChildren.length; i++) {
+            var b1 = treeComparer(tree.listOfChildren[i], placeholderTree.listOfChildren[i])
+            if(b1==false) {
+                return false;
+            }
+        }
+        return true;
+        }
+        return false;
+    }
 }
 
 function treePermsAtLevel(nodedTree1, sdepth) {
@@ -62,6 +157,7 @@ function getAllLevelPerms(nodedTree) {
     return listOfPerms;
 }
 
+//Given any node, navigates to and returns the root of the tree
 function returnRootNode(nodedTreeChild) {
     var c = nodedTreeChild;
     while(c.parent!=null){
@@ -69,6 +165,8 @@ function returnRootNode(nodedTreeChild) {
     }
     return c;
 }
+
+//Transforms array input of [Parent, Child1,Child2, Child3....] to Node object below
 function turnArrayToTree(tree) {
         if(!Array.isArray(tree)) {
         return new Node(tree, null, false);
@@ -89,14 +187,15 @@ function turnArrayToTree(tree) {
         return c;
             }
 }
-function postOrder(nodedTree) {
+//Preorder printout of a nodedTree
+function preOrder(nodedTree) {
     if(nodedTree==null) {
     }
     else if(nodedTree.listOfChildren!=null) {
         console.log(nodedTree.data + " " + nodedTree.isPlaceholder)
         console.group()
     for(i = 0; i < nodedTree.listOfChildren.length; i++) {
-        postOrder(nodedTree.listOfChildren[i]);
+        preOrder(nodedTree.listOfChildren[i]);
     }
     console.groupEnd()
     }
@@ -105,12 +204,15 @@ function postOrder(nodedTree) {
     }
     
 }
-
+//Returns an array of integers that correspond to the path of children to follow the placeholder node(Root node's 0th child's 1st child, then that node's 0th, 2nd, etc)
 function findPlaceholderLocation(nodedTree) {
-    if(nodedTree.isPlaceholder) {
+    if(nodedTree==null) {
+        return null;
+    }
+    else if(nodedTree.isPlaceholder) {
         return -1;
     }
-    if(nodedTree.listOfChildren==null || nodedTree==null || nodedTree.data==null) {
+    else if(nodedTree.listOfChildren==null || nodedTree.data==null) {
         return null;
     }
     for(i = 0; i < nodedTree.listOfChildren.length; i++) {
@@ -128,7 +230,19 @@ function findPlaceholderLocation(nodedTree) {
         }
     }
 }
-
+//Tests if two nodes are equivalent i.e have the same data
+function areNodesEqual(node1, node2) {
+    if(node1==null && node2==null) {
+        return true;
+    }
+    else if(node1==null || node2==null) {
+        return false;
+    }
+    else if(node1.data=== node2.data) {
+        return true;
+    }
+    return false;
+}
 class Node {
      data;
      listOfChildren = null;
